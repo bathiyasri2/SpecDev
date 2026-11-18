@@ -7,21 +7,34 @@
 | `<your-user>/SpecDev` | Source (Spec Kit + `web/` Next.js app) |
 | `<your-user>/<your-user>.github.io` | User site root — **https://\<your-user\>.github.io** |
 
-## Automatic deploy
+## Recommended: publish user site from your machine
 
-On every push to `main` of **SpecDev**:
+`GITHUB_TOKEN` cannot push to another repository. Cross-repo Actions deploy needs a PAT, and a wrong/incomplete PAT causes `403 Permission denied`.
 
-1. **Preview** (always): builds with `basePath` `/SpecDev` and deploys to SpecDev GitHub Pages  
-   - URL: `https://bathiyaspecs.github.io/SpecDev/` (after Pages is enabled on SpecDev)
+From the repo root (after `gh auth login`):
 
-2. **User site** (when configured): builds without `basePath` and pushes `web/out` to `bathiyaspecs.github.io`  
-   - URL: **https://bathiyaspecs.github.io**
+```powershell
+powershell -File scripts/publish-user-site.ps1
+```
 
-### One-time: enable user site deploy
+This builds `web/` without `basePath` and pushes to `<user>.github.io`.
 
-1. Create an empty public repo: `bathiyaspecs.github.io`
-2. Create a fine-grained PAT with **Contents: Read and write** on that repo (or classic `repo` scope).
-3. In **SpecDev** → Settings → Secrets → Actions, add `PAGES_DEPLOY_TOKEN` with the PAT.
-4. On `bathiyaspecs.github.io` → Settings → Pages, set source to **Deploy from branch** → branch `main` → folder `/ (root)`.
+Then open **https://\<your-user\>.github.io** (e.g. https://bathiyasri2.github.io).
 
-Without `PAGES_DEPLOY_TOKEN`, only the `/SpecDev/` preview job runs.
+## SpecDev preview (Actions)
+
+On every push to `main`, Actions deploys SpecDev GitHub Pages with `/SpecDev` basePath:
+
+- **https://\<your-user\>.github.io/SpecDev/**
+
+Enable: SpecDev → Settings → Pages → **GitHub Actions**.
+
+## Optional: Actions deploy to user site
+
+Only if you want CI to push to `<user>.github.io`:
+
+1. Create a **classic** PAT with the **`repo`** scope (fine-grained tokens often fail with “Permission denied” unless Contents: Write is granted on the `.github.io` repo).
+2. SpecDev → Settings → Secrets → Actions → `PAGES_DEPLOY_TOKEN` = that PAT (not `GITHUB_TOKEN`).
+3. `.github.io` → Settings → Pages → Deploy from branch **main**, folder **/**.
+
+If the secret is missing or lacks write access, the user-site job soft-fails; SpecDev preview still deploys.
