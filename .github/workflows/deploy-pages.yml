@@ -15,34 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-user-site:
-    name: Publish to bathiyaspecs.github.io
-    runs-on: ubuntu-latest
-    if: ${{ secrets.PAGES_DEPLOY_TOKEN != '' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install and build
-        working-directory: web
-        run: |
-          npm install
-          npm run build
-
-      - name: Push static files to user Pages repo
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
-          external_repository: ${{ github.repository_owner }}/${{ github.repository_owner }}.github.io
-          publish_branch: main
-          publish_dir: web/out
-          user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com
-          force_orphan: true
-
   deploy-specdev-pages:
     name: Publish preview on SpecDev GitHub Pages
     runs-on: ubuntu-latest
@@ -71,3 +43,45 @@ jobs:
       - id: deployment
         name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
+  deploy-user-site:
+    name: Publish to user github.io site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect deploy token
+        id: token
+        env:
+          PAGES_DEPLOY_TOKEN: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+        run: |
+          if [ -n "$PAGES_DEPLOY_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "PAGES_DEPLOY_TOKEN is not set; skipping user-site publish."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: "20"
+
+      - name: Install and build
+        if: steps.token.outputs.present == 'true'
+        working-directory: web
+        run: |
+          npm install
+          npm run build
+
+      - name: Push static files to user Pages repo
+        if: steps.token.outputs.present == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          external_repository: ${{ github.repository_owner }}/${{ github.repository_owner }}.github.io
+          publish_branch: main
+          publish_dir: web/out
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          force_orphan: true
