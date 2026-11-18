@@ -32,11 +32,11 @@ jobs:
           npm install
           npm run build
 
-      - name: Push static files to bathiyaspecs/bathiyaspecs.github.io
+      - name: Push static files to user Pages repo
         uses: peaceiris/actions-gh-pages@v4
         with:
           personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
-          external_repository: bathiyaspecs/bathiyaspecs.github.io
+          external_repository: ${{ github.repository_owner }}/${{ github.repository_owner }}.github.io
           publish_branch: main
           publish_dir: web/out
           user_name: github-actions[bot]

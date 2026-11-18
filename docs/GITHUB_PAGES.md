@@ -4,8 +4,8 @@
 
 | Repo | Purpose |
 |------|---------|
-| `bathiyaspecs/SpecDev` | Source (Spec Kit + `web/` Next.js app) |
-| `bathiyaspecs/bathiyaspecs.github.io` | User site root — **https://bathiyaspecs.github.io** |
+| `<your-user>/SpecDev` | Source (Spec Kit + `web/` Next.js app) |
+| `<your-user>/<your-user>.github.io` | User site root — **https://\<your-user\>.github.io** |
 
 ## Automatic deploy
 
