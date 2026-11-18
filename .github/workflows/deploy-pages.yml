@@ -1,0 +1,73 @@
+name: Deploy static site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy-user-site:
+    name: Publish to bathiyaspecs.github.io
+    runs-on: ubuntu-latest
+    if: ${{ secrets.PAGES_DEPLOY_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build
+        working-directory: web
+        run: |
+          npm install
+          npm run build
+
+      - name: Push static files to bathiyaspecs/bathiyaspecs.github.io
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          external_repository: bathiyaspecs/bathiyaspecs.github.io
+          publish_branch: main
+          publish_dir: web/out
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          force_orphan: true
+
+  deploy-specdev-pages:
+    name: Publish preview on SpecDev GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build with /SpecDev basePath
+        working-directory: web
+        env:
+          GITHUB_PAGES: "true"
+        run: |
+          npm install
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/out
+
+      - id: deployment
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
